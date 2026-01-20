@@ -12,6 +12,7 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { SolvePage } from './pages/solve/SolvePage';
 import { MySolutionsPage } from './pages/solutions/MySolutionsPage';
+import { LandingPage } from './pages/landing/LandingPage';
 
 // Styles
 import './index.css';
@@ -53,6 +54,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Marketing Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* Public Routes */}
         <Route
           path="/login"
@@ -81,7 +85,10 @@ function App() {
         </Route>
 
         {/* Redirect */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="*"
+          element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />}
+        />
       </Routes>
     </BrowserRouter>
   );

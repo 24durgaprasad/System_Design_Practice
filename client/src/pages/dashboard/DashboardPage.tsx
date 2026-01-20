@@ -84,6 +84,10 @@ export function DashboardPage() {
         return `badge badge-${difficulty.toLowerCase()}`;
     };
 
+    const easyCount = filteredQuestions.filter(q => q.difficulty === 'Easy').length;
+    const mediumCount = filteredQuestions.filter(q => q.difficulty === 'Medium').length;
+    const hardCount = filteredQuestions.filter(q => q.difficulty === 'Hard').length;
+
     return (
         <div className="dashboard-page">
             <div className="dashboard-header">
@@ -98,19 +102,19 @@ export function DashboardPage() {
 
                 <div className="header-stats">
                     <div className="stat-card">
-                        <span className="stat-value">{questions.length}</span>
-                        <span className="stat-label">Problems</span>
+                        <span className="stat-value">{filteredQuestions.length}</span>
+                        <span className="stat-label">Problems Shown</span>
                     </div>
                     <div className="stat-card">
-                        <span className="stat-value">{questions.filter(q => q.difficulty === 'Easy').length}</span>
+                        <span className="stat-value">{easyCount}</span>
                         <span className="stat-label">Easy</span>
                     </div>
                     <div className="stat-card">
-                        <span className="stat-value">{questions.filter(q => q.difficulty === 'Medium').length}</span>
+                        <span className="stat-value">{mediumCount}</span>
                         <span className="stat-label">Medium</span>
                     </div>
                     <div className="stat-card">
-                        <span className="stat-value">{questions.filter(q => q.difficulty === 'Hard').length}</span>
+                        <span className="stat-value">{hardCount}</span>
                         <span className="stat-label">Hard</span>
                     </div>
                 </div>
