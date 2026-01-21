@@ -6,7 +6,7 @@ import type { Question, Solution } from '../../types';
 import {
     ArrowLeft,
     Save,
-    Play,
+    Sparkles,
     Loader2,
     CheckCircle,
     AlertCircle,
@@ -14,7 +14,8 @@ import {
     Target,
     Info,
     ChevronDown,
-    ChevronUp
+    ChevronRight,
+    User
 } from 'lucide-react';
 import './SolvePage.css';
 
@@ -33,7 +34,6 @@ export function SolvePage() {
     const [solution, setSolution] = useState<Solution | null>(null);
     const [initialExcalidrawData, setInitialExcalidrawData] = useState<any>(null);
 
-    // Use Ref for frequently updating data to avoid re-renders
     const currentExcalidrawDataRef = useRef<any>(null);
     const [hasData, setHasData] = useState(false);
 
@@ -73,7 +73,6 @@ export function SolvePage() {
                 setSolution(existingSolution);
                 setInitialExcalidrawData(existingSolution.excalidrawData);
 
-                // Initialize ref and hasData state
                 currentExcalidrawDataRef.current = existingSolution.excalidrawData;
                 setHasData(true);
 
@@ -88,7 +87,6 @@ export function SolvePage() {
 
     const handleExcalidrawChange = useCallback((elements: any, appState: any, files: any) => {
         currentExcalidrawDataRef.current = { elements, appState, files };
-        // Only trigger re-render if necessary (though React bails out efficiently)
         setHasData(true);
     }, []);
 
@@ -174,27 +172,28 @@ export function SolvePage() {
     };
 
     const getScoreColor = (score: number) => {
-        if (score >= 80) return 'score-excellent';
-        if (score >= 60) return 'score-good';
-        if (score >= 40) return 'score-average';
-        return 'score-poor';
+        if (score >= 80) return 'text-emerald-400';
+        if (score >= 60) return 'text-yellow-400';
+        return 'text-red-400';
     };
 
     if (isLoading) {
         return (
-            <div className="solve-loading">
-                <div className="spinner spinner-lg"></div>
-                <p>Loading problem...</p>
+            <div className="flex items-center justify-center min-h-screen bg-[#020617]">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-emerald-400 animate-spin mx-auto mb-4" />
+                    <p className="text-slate-400">Loading problem...</p>
+                </div>
             </div>
         );
     }
 
     if (!question) {
         return (
-            <div className="solve-error">
-                <AlertCircle size={48} />
-                <h2>Problem not found</h2>
-                <Link to="/dashboard" className="btn btn-primary">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-[#020617]">
+                <AlertCircle size={48} className="text-red-400 mb-4" />
+                <h2 className="text-xl font-bold text-white mb-4">Problem not found</h2>
+                <Link to="/dashboard" className="px-6 py-3 bg-emerald-500 text-black font-semibold rounded-lg hover:bg-emerald-400 transition-all">
                     Back to Dashboard
                 </Link>
             </div>
@@ -202,87 +201,104 @@ export function SolvePage() {
     }
 
     return (
-        <div className="solve-page">
-            <div className="solve-header">
-                <div className="header-left">
-                    <Link to="/dashboard" className="back-btn">
-                        <ArrowLeft size={20} />
+        <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#020617] text-white fixed inset-0">
+
+            {/* UNIFIED GLASS HEADER */}
+            <header className="flex-none h-16 flex items-center justify-between px-4 border-b border-white/10 bg-slate-900/50 backdrop-blur-md z-50">
+
+                {/* Left: Context */}
+                <div className="flex items-center gap-4">
+                    <Link to="/dashboard" className="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors">
+                        <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <div className="problem-info">
-                        <h1 className="problem-title">{question.title}</h1>
-                        <div className="problem-meta">
-                            <span className={`badge badge-${question.difficulty.toLowerCase()}`}>
-                                {question.difficulty}
+
+                    <div>
+                        <h1 className="text-sm font-bold text-slate-200 flex items-center gap-3">
+                            {question.title}
+                            {/* Difficulty Badge */}
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border tracking-wider ${question.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                question.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                    'bg-red-500/10 text-red-500 border-red-500/20'
+                                }`}>
+                                {question.difficulty.toUpperCase()}
                             </span>
-                            <span className="category-label">{question.category}</span>
-                        </div>
+                        </h1>
+                        <span className="text-xs text-slate-500">{question.category} • System Design</span>
                     </div>
                 </div>
 
-                <div className="header-actions">
-                    {saveMessage && (
-                        <span className={`save-message ${saveMessage.includes('success') ? 'success' : 'error'}`}>
-                            {saveMessage}
-                        </span>
-                    )}
-                    <button
-                        className="btn btn-secondary"
-                        onClick={handleSave}
-                        disabled={isSaving || !hasData}
-                    >
-                        {isSaving ? (
-                            <>
-                                <Loader2 size={18} className="animate-spin" />
-                                Saving...
-                            </>
-                        ) : (
-                            <>
-                                <Save size={18} />
-                                Save
-                            </>
+                {/* Right: Actions */}
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 mr-4 border-r border-white/10 pr-4">
+                        {saveMessage && (
+                            <span className={`text-xs ${saveMessage.includes('success') ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {saveMessage}
+                            </span>
                         )}
-                    </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving || !hasData}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                            Save
+                        </button>
+                    </div>
+
+                    {/* THE MINT BUTTON */}
                     <button
-                        className="btn btn-primary"
                         onClick={handleEvaluate}
                         disabled={isEvaluating || !hasData}
+                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-bold rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                     >
                         {isEvaluating ? (
                             <>
-                                <Loader2 size={18} className="animate-spin" />
-                                Evaluating...
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Evaluating...</span>
                             </>
                         ) : (
                             <>
-                                <Play size={18} />
-                                Evaluate with AI
+                                <Sparkles className="w-4 h-4 fill-black" />
+                                <span>Evaluate with AI</span>
                             </>
                         )}
                     </button>
-                </div>
-            </div>
 
-            <div className="solve-content">
-                <aside className="solve-sidebar">
-                    <div className="sidebar-section">
-                        <div
-                            className="section-header"
+                    {/* User Avatar */}
+                    <div className="w-8 h-8 rounded-full bg-slate-800 border border-white/10 ml-2 flex items-center justify-center">
+                        <User className="w-4 h-4 text-slate-400" />
+                    </div>
+                </div>
+            </header>
+
+            {/* MAIN WORKSPACE */}
+            <div className="flex flex-1 relative overflow-hidden">
+
+                {/* LEFT SIDEBAR (Glass) */}
+                <aside className="w-80 flex flex-col border-r border-white/10 bg-slate-900/30 backdrop-blur-sm overflow-y-auto">
+
+                    {/* Requirements Section */}
+                    <div className="border-b border-white/5">
+                        <button
                             onClick={() => setShowRequirements(!showRequirements)}
+                            className="flex items-center justify-between w-full p-4 text-sm font-semibold text-emerald-400 hover:bg-white/5 transition-colors"
                         >
-                            <div className="section-title">
-                                <Target size={18} />
-                                <span>Requirements</span>
-                            </div>
-                            {showRequirements ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                        </div>
+                            <span className="flex items-center gap-2">
+                                {showRequirements ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                <Target className="w-4 h-4" />
+                                Requirements
+                            </span>
+                        </button>
                         {showRequirements && (
-                            <div className="section-content">
-                                <p className="problem-description">{question.description}</p>
+                            <div className="px-4 pb-4 border-l-2 border-emerald-500 ml-4">
+                                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                                    {question.description}
+                                </p>
                                 {question.requirements && question.requirements.length > 0 && (
-                                    <ul className="requirements-list">
+                                    <ul className="space-y-2">
                                         {question.requirements.map((req, i) => (
-                                            <li key={i}>
-                                                <CheckCircle size={14} />
+                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
+                                                <CheckCircle size={14} className="text-emerald-500 mt-0.5 flex-shrink-0" />
                                                 <span>{req}</span>
                                             </li>
                                         ))}
@@ -292,24 +308,23 @@ export function SolvePage() {
                         )}
                     </div>
 
+                    {/* Hints Section */}
                     {question.hints && question.hints.length > 0 && (
-                        <div className="sidebar-section">
-                            <div
-                                className="section-header"
+                        <div className="border-b border-white/5">
+                            <button
                                 onClick={() => setShowHints(!showHints)}
+                                className="flex items-center gap-2 w-full p-4 text-sm font-medium text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-colors"
                             >
-                                <div className="section-title">
-                                    <Lightbulb size={18} />
-                                    <span>Hints</span>
-                                </div>
-                                {showHints ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                            </div>
+                                {showHints ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                <Lightbulb className="w-4 h-4" />
+                                Hints
+                            </button>
                             {showHints && (
-                                <div className="section-content">
-                                    <ul className="hints-list">
+                                <div className="px-4 pb-4">
+                                    <ul className="space-y-2">
                                         {question.hints.map((hint, i) => (
-                                            <li key={i}>
-                                                <Info size={14} />
+                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
+                                                <Info size={14} className="text-blue-400 mt-0.5 flex-shrink-0" />
                                                 <span>{hint}</span>
                                             </li>
                                         ))}
@@ -319,117 +334,146 @@ export function SolvePage() {
                         </div>
                     )}
 
+                    {/* Evaluation Criteria */}
                     {question.evaluationCriteria && question.evaluationCriteria.length > 0 && (
-                        <div className="sidebar-section">
-                            <div className="section-header">
-                                <div className="section-title">
-                                    <Target size={18} />
-                                    <span>Evaluation Criteria</span>
-                                </div>
+                        <div className="p-4">
+                            <div className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-3">
+                                <Target className="w-4 h-4" />
+                                Evaluation Criteria
                             </div>
-                            <div className="section-content">
-                                <div className="criteria-list">
-                                    {question.evaluationCriteria.map((criteria, i) => (
-                                        <div key={i} className="criteria-item">
-                                            <div className="criteria-header">
-                                                <span className="criteria-name">{criteria.name}</span>
-                                                <span className="criteria-weight">{criteria.weight}%</span>
-                                            </div>
-                                            <p className="criteria-desc">{criteria.description}</p>
+                            <div className="space-y-3">
+                                {question.evaluationCriteria.map((criteria, i) => (
+                                    <div key={i} className="bg-slate-800/30 rounded-lg p-3 border border-white/5">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-xs font-semibold text-white">{criteria.name}</span>
+                                            <span className="text-xs text-emerald-400">{criteria.weight}%</span>
                                         </div>
-                                    ))}
-                                </div>
+                                        <p className="text-xs text-slate-400">{criteria.description}</p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
                 </aside>
 
-                <div className="canvas-container">
-                    <Excalidraw
-                        excalidrawAPI={(api: any) => setExcalidrawAPI(api)}
-                        initialData={initialExcalidrawData || undefined}
-                        onChange={handleExcalidrawChange}
-                        theme="dark"
-                        UIOptions={solvePageUIOptions}
+                {/* CANVAS AREA */}
+                <main className="flex-1 relative bg-[#020617] overflow-hidden">
+
+                    {/* Dot Grid Pattern */}
+                    <div
+                        className="absolute inset-0 opacity-[0.07] pointer-events-none"
+                        style={{
+                            backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)',
+                            backgroundSize: '24px 24px'
+                        }}
                     />
-                </div>
 
+                    {/* Excalidraw Canvas */}
+                    <div className="absolute inset-0">
+                        <Excalidraw
+                            excalidrawAPI={(api: any) => setExcalidrawAPI(api)}
+                            initialData={initialExcalidrawData || undefined}
+                            onChange={handleExcalidrawChange}
+                            theme="dark"
+                            UIOptions={solvePageUIOptions}
+                        />
+                    </div>
+                </main>
+
+                {/* EVALUATION PANEL */}
                 {showEvaluation && solution?.evaluation && (
-                    <aside className="evaluation-panel animate-slideUp">
-                        <div className="evaluation-header">
-                            <h3>AI Evaluation Results</h3>
-                            <button
-                                className="close-btn"
-                                onClick={() => setShowEvaluation(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        <div className="score-display">
-                            <div className={`score-circle ${getScoreColor(solution.evaluation.score)}`}>
-                                <span className="score-value">{solution.evaluation.score}</span>
-                                <span className="score-label">/ 100</span>
+                    <aside className="w-96 border-l border-white/10 bg-slate-900/30 backdrop-blur-sm overflow-y-auto animate-slideIn">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-lg font-bold text-white">AI Evaluation</h3>
+                                <button
+                                    onClick={() => setShowEvaluation(false)}
+                                    className="text-slate-400 hover:text-white transition-colors"
+                                >
+                                    ×
+                                </button>
                             </div>
-                        </div>
 
-                        <div className="evaluation-section">
-                            <h4>Feedback</h4>
-                            <p>{solution.evaluation.feedback}</p>
-                        </div>
-
-                        {solution.evaluation.strengths && solution.evaluation.strengths.length > 0 && (
-                            <div className="evaluation-section">
-                                <h4 className="success-title">
-                                    <CheckCircle size={16} />
-                                    Strengths
-                                </h4>
-                                <ul className="feedback-list success">
-                                    {solution.evaluation.strengths.map((strength, i) => (
-                                        <li key={i}>{strength}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {solution.evaluation.improvements && solution.evaluation.improvements.length > 0 && (
-                            <div className="evaluation-section">
-                                <h4 className="warning-title">
-                                    <AlertCircle size={16} />
-                                    Areas for Improvement
-                                </h4>
-                                <ul className="feedback-list warning">
-                                    {solution.evaluation.improvements.map((improvement, i) => (
-                                        <li key={i}>{improvement}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {solution.evaluation.criteriaScores && solution.evaluation.criteriaScores.length > 0 && (
-                            <div className="evaluation-section">
-                                <h4>Criteria Breakdown</h4>
-                                <div className="criteria-scores">
-                                    {solution.evaluation.criteriaScores.map((criteria, i) => (
-                                        <div key={i} className="criteria-score-item">
-                                            <div className="criteria-score-header">
-                                                <span className="criteria-score-name">{criteria.name}</span>
-                                                <span className={`criteria-score-value ${getScoreColor(criteria.score)}`}>
-                                                    {criteria.score}/100
-                                                </span>
-                                            </div>
-                                            <div className="criteria-score-bar">
-                                                <div
-                                                    className="criteria-score-fill"
-                                                    style={{ width: `${criteria.score}%` }}
-                                                ></div>
-                                            </div>
-                                            <p className="criteria-score-feedback">{criteria.feedback}</p>
+                            {/* Score Display */}
+                            <div className="flex items-center justify-center mb-6">
+                                <div className="relative">
+                                    <div className="w-32 h-32 rounded-full border-4 border-slate-800 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <span className={`text-4xl font-bold ${getScoreColor(solution.evaluation.score)}`}>
+                                                {solution.evaluation.score}
+                                            </span>
+                                            <span className="text-slate-500 text-sm block">/ 100</span>
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
                             </div>
-                        )}
+
+                            {/* Feedback */}
+                            <div className="mb-6">
+                                <h4 className="text-sm font-semibold text-white mb-2">Feedback</h4>
+                                <p className="text-sm text-slate-400 leading-relaxed">{solution.evaluation.feedback}</p>
+                            </div>
+
+                            {/* Strengths */}
+                            {solution.evaluation.strengths && solution.evaluation.strengths.length > 0 && (
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-semibold text-emerald-400 flex items-center gap-2 mb-2">
+                                        <CheckCircle size={16} />
+                                        Strengths
+                                    </h4>
+                                    <ul className="space-y-2">
+                                        {solution.evaluation.strengths.map((strength, i) => (
+                                            <li key={i} className="text-sm text-slate-400 pl-4 border-l-2 border-emerald-500/30">
+                                                {strength}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Improvements */}
+                            {solution.evaluation.improvements && solution.evaluation.improvements.length > 0 && (
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-semibold text-yellow-400 flex items-center gap-2 mb-2">
+                                        <AlertCircle size={16} />
+                                        Areas for Improvement
+                                    </h4>
+                                    <ul className="space-y-2">
+                                        {solution.evaluation.improvements.map((improvement, i) => (
+                                            <li key={i} className="text-sm text-slate-400 pl-4 border-l-2 border-yellow-500/30">
+                                                {improvement}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Criteria Scores */}
+                            {solution.evaluation.criteriaScores && solution.evaluation.criteriaScores.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-white mb-3">Criteria Breakdown</h4>
+                                    <div className="space-y-4">
+                                        {solution.evaluation.criteriaScores.map((criteria, i) => (
+                                            <div key={i} className="bg-slate-800/30 rounded-lg p-3 border border-white/5">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-xs font-semibold text-white">{criteria.name}</span>
+                                                    <span className={`text-sm font-bold ${getScoreColor(criteria.score)}`}>
+                                                        {criteria.score}/100
+                                                    </span>
+                                                </div>
+                                                <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden mb-2">
+                                                    <div
+                                                        className="h-full bg-emerald-500 rounded-full transition-all"
+                                                        style={{ width: `${criteria.score}%` }}
+                                                    />
+                                                </div>
+                                                <p className="text-xs text-slate-400">{criteria.feedback}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </aside>
                 )}
             </div>

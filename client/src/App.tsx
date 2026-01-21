@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Components
 import { Layout } from './components/layout/Layout';
@@ -52,45 +53,47 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Marketing Landing Page */}
-        <Route path="/" element={<LandingPage />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Marketing Landing Page */}
+          <Route path="/" element={<LandingPage />} />
 
-        {/* Public Routes */}
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />
-          }
-        />
+          {/* Public Routes */}
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />
+            }
+          />
 
-        {/* Protected Routes */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/solve/:id" element={<SolvePage />} />
-          <Route path="/my-solutions" element={<MySolutionsPage />} />
-        </Route>
+          {/* Protected Routes */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/solve/:id" element={<SolvePage />} />
+            <Route path="/my-solutions" element={<MySolutionsPage />} />
+          </Route>
 
-        {/* Redirect */}
-        <Route
-          path="*"
-          element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />}
-        />
-      </Routes>
-    </BrowserRouter>
+          {/* Redirect */}
+          <Route
+            path="*"
+            element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />}
+          />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

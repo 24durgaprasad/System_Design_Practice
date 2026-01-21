@@ -13,8 +13,13 @@ import {
     RotateCcw,
     Search,
     Filter,
-    X
+    X,
+    Target,
+    TrendingUp,
+    Zap
 } from 'lucide-react';
+import SpotlightCard from '../../components/SpotlightCard/SpotlightCard';
+import AuroraBackground from '../../components/AuroraBackground/AuroraBackground';
 import './MySolutions.css';
 
 export function MySolutionsPage() {
@@ -65,13 +70,13 @@ export function MySolutionsPage() {
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'evaluated':
-                return <CheckCircle size={16} className="status-icon success" />;
+                return <CheckCircle size={16} className="text-emerald-400" />;
             case 'evaluating':
-                return <Loader2 size={16} className="status-icon loading animate-spin" />;
+                return <Loader2 size={16} className="text-blue-400 animate-spin" />;
             case 'error':
-                return <AlertCircle size={16} className="status-icon error" />;
+                return <AlertCircle size={16} className="text-red-400" />;
             default:
-                return <Clock size={16} className="status-icon pending" />;
+                return <Clock size={16} className="text-slate-400" />;
         }
     };
 
@@ -89,10 +94,9 @@ export function MySolutionsPage() {
     };
 
     const getScoreColor = (score: number) => {
-        if (score >= 80) return 'score-excellent';
-        if (score >= 60) return 'score-good';
-        if (score >= 40) return 'score-average';
-        return 'score-poor';
+        if (score >= 80) return 'text-emerald-400';
+        if (score >= 60) return 'text-yellow-400';
+        return 'text-red-400';
     };
 
     const formatDate = (dateString: string) => {
@@ -105,187 +109,251 @@ export function MySolutionsPage() {
         });
     };
 
+    const stats = {
+        total: solutions.length,
+        evaluated: solutions.filter(s => s.status === 'evaluated').length,
+        passed: solutions.filter(s => s.status === 'evaluated' && s.evaluation?.score && s.evaluation.score >= 70).length
+    };
+
     return (
-        <div className="my-solutions-page">
-            <div className="page-header">
-                <div className="header-content">
-                    <h1 className="page-title">
-                        <span className="gradient-text">My Solutions</span>
+        <div className="min-h-screen bg-[#020617] relative overflow-hidden pt-24">
+            {/* Aurora Background */}
+            <AuroraBackground />
+
+            {/* Animated Grid Background */}
+            <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] pointer-events-none"></div>
+
+            {/* Content */}
+            <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+                {/* Header Section with BlurText */}
+                <div className="mb-10">
+                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 animate-[blur-in_0.8s_ease-out]">
+                        <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400 bg-clip-text text-transparent">
+                            My Solutions
+                        </span>
                     </h1>
-                    <p className="page-subtitle">
-                        Review your submitted solutions and AI evaluations
-                    </p>
+                    <p className="text-xl text-slate-400">Review your submitted architectures and AI evaluations</p>
                 </div>
 
-                <div className="header-stats">
-                    <div className="stat-card">
-                        <span className="stat-value">{solutions.length}</span>
-                        <span className="stat-label">Total</span>
-                    </div>
-                    <div className="stat-card">
-                        <span className="stat-value">
-                            {solutions.filter(s => s.status === 'evaluated').length}
-                        </span>
-                        <span className="stat-label">Evaluated</span>
-                    </div>
-                    <div className="stat-card leading-card">
-                        <span className="stat-value">
-                            {solutions.filter(s => s.status === 'evaluated' && s.evaluation?.score && s.evaluation.score >= 70).length}
-                        </span>
-                        <span className="stat-label">Passed</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="solutions-filter-bar">
-                <div className="search-input-wrapper">
-                    <Search className="search-icon" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search by title or category..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                    {searchTerm && (
-                        <button
-                            className="clear-search-btn"
-                            onClick={() => setSearchTerm('')}
-                        >
-                            <X size={16} />
-                        </button>
-                    )}
-                </div>
-
-                <div className="filter-group">
-                    <Filter size={20} className="filter-icon" />
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="status-filter-select"
-                    >
-                        <option value="all">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="evaluating">Evaluating</option>
-                        <option value="evaluated">Evaluated</option>
-                        <option value="error">Error</option>
-                    </select>
-                </div>
-            </div>
-
-            {isLoading ? (
-                <div className="solutions-loading">
-                    <div className="spinner spinner-lg"></div>
-                    <p>Loading your solutions...</p>
-                </div>
-            ) : filteredSolutions.length === 0 ? (
-                <div className="empty-state">
-                    <FileCode size={64} className="empty-icon" />
-                    <h3>
-                        {solutions.length === 0
-                            ? "No Solutions Yet"
-                            : "No matching solutions found"}
-                    </h3>
-                    <p>
-                        {solutions.length === 0
-                            ? "Start solving system design problems to see your solutions here"
-                            : "Try adjusting your search or filters"}
-                    </p>
-                    {solutions.length === 0 && (
-                        <Link to="/dashboard" className="btn btn-primary">
-                            Browse Problems
-                            <ArrowRight size={18} />
-                        </Link>
-                    )}
-                    {solutions.length > 0 && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() => {
-                                setSearchTerm('');
-                                setStatusFilter('all');
-                            }}
-                        >
-                            Clear Filters
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="solutions-list">
-                    {filteredSolutions.map((solution, index) => {
-                        const question = solution.question as Question;
-                        if (!question) return null;
-
-                        return (
-                            <div
-                                key={solution._id}
-                                className="solution-card animate-fadeIn"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                                <div className="solution-main">
-                                    <div className="solution-info">
-                                        <h3 className="solution-title">{question.title}</h3>
-                                        <div className="solution-meta">
-                                            <span className={`badge badge-${question.difficulty?.toLowerCase() || 'medium'}`}>
-                                                {question.difficulty || 'Medium'}
-                                            </span>
-                                            <span className="meta-divider">•</span>
-                                            <span className="meta-category">{question.category}</span>
-                                            <span className="meta-divider">•</span>
-                                            <span className="meta-date">
-                                                <Clock size={14} />
-                                                {formatDate(solution.submittedAt)}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="solution-status-wrapper">
-                                        <div className={`solution-status status-${solution.status}`}>
-                                            {getStatusIcon(solution.status)}
-                                            <span>{getStatusLabel(solution.status)}</span>
-                                        </div>
-
-                                        {solution.status === 'evaluated' && solution.evaluation && (
-                                            <div className={`solution-score ${getScoreColor(solution.evaluation.score)}`}>
-                                                <span className="score-value">{solution.evaluation.score}</span>
-                                                <span className="score-label">/ 100</span>
-                                            </div>
-                                        )}
-                                    </div>
+                {/* Stats Row - Spotlight Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <SpotlightCard className="p-6">
+                        <div className="flex flex-col items-center justify-center h-24">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                                    <Target className="w-5 h-5 text-emerald-400" />
                                 </div>
-
-                                {solution.status === 'evaluated' && solution.evaluation && (
-                                    <div className="solution-feedback">
-                                        <p className="feedback-text">
-                                            {solution.evaluation.feedback?.substring(0, 200)}
-                                            {(solution.evaluation.feedback?.length || 0) > 200 ? '...' : ''}
-                                        </p>
-                                    </div>
-                                )}
-
-                                <div className="solution-actions">
-                                    <Link
-                                        to={`/solve/${typeof question === 'string' ? question : question._id}`}
-                                        className="btn btn-secondary"
-                                    >
-                                        <RotateCcw size={16} />
-                                        Continue
-                                    </Link>
-                                    <button
-                                        className="btn btn-ghost btn-danger-hover"
-                                        onClick={(e) => {
-                                            e.preventDefault(); // Prevent accidental navigation if nested
-                                            handleDelete(solution._id);
-                                        }}
-                                    >
-                                        <Trash2 size={16} />
-                                        Delete
-                                    </button>
-                                </div>
+                                <span className="text-4xl font-bold text-white">{stats.total}</span>
                             </div>
-                        );
-                    })}
+                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Submissions</span>
+                        </div>
+                    </SpotlightCard>
+
+                    <SpotlightCard className="p-6">
+                        <div className="flex flex-col items-center justify-center h-24">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-blue-500/10 rounded-lg">
+                                    <TrendingUp className="w-5 h-5 text-blue-400" />
+                                </div>
+                                <span className="text-4xl font-bold text-white">{stats.evaluated}</span>
+                            </div>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">AI Evaluated</span>
+                        </div>
+                    </SpotlightCard>
+
+                    <SpotlightCard className="p-6">
+                        <div className="flex flex-col items-center justify-center h-24">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                                    <Zap className="w-5 h-5 text-emerald-400" />
+                                </div>
+                                <span className="text-4xl font-bold text-emerald-400">{stats.passed}</span>
+                            </div>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Passed</span>
+                        </div>
+                    </SpotlightCard>
                 </div>
-            )}
+
+                {/* Search & Filter Toolbar */}
+                <div className="flex flex-col md:flex-row gap-4 mb-8">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                        <input
+                            type="text"
+                            placeholder="Search by title or category..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-3 pl-12 pr-10 text-slate-200 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-slate-600 backdrop-blur-sm"
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
+                    <button className="flex items-center gap-2 px-6 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-slate-300 hover:text-white hover:border-emerald-500/30 transition-all backdrop-blur-sm">
+                        <Filter className="w-4 h-4" />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="bg-transparent outline-none cursor-pointer"
+                        >
+                            <option value="all" className="bg-slate-900">All Status</option>
+                            <option value="pending" className="bg-slate-900">Pending</option>
+                            <option value="evaluating" className="bg-slate-900">Evaluating</option>
+                            <option value="evaluated" className="bg-slate-900">Evaluated</option>
+                            <option value="error" className="bg-slate-900">Error</option>
+                        </select>
+                    </button>
+                </div>
+
+                {/* Content Area */}
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <Loader2 className="w-12 h-12 text-emerald-400 animate-spin mb-4" />
+                        <p className="text-slate-400">Loading your solutions...</p>
+                    </div>
+                ) : filteredSolutions.length === 0 ? (
+                    /* Empty State - Glass Panel */
+                    <div className="w-full min-h-96 rounded-2xl border border-white/5 bg-slate-900/30 backdrop-blur-sm flex flex-col items-center justify-center text-center p-8 relative overflow-hidden group">
+                        {/* Subtle glow behind the icon */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full group-hover:bg-emerald-500/20 transition-all duration-700"></div>
+
+                        <div className="relative bg-slate-800/50 p-6 rounded-2xl border border-white/5 mb-6 group-hover:scale-105 transition-transform duration-500">
+                            <FileCode className="w-12 h-12 text-slate-500 group-hover:text-emerald-400 transition-colors duration-300" />
+                        </div>
+
+                        <h3 className="text-xl font-semibold text-white mb-2">
+                            {solutions.length === 0 ? "No Solutions Yet" : "No matching solutions found"}
+                        </h3>
+                        <p className="text-slate-400 max-w-sm mb-8">
+                            {solutions.length === 0
+                                ? "You haven't submitted any system designs. Start a practice session to see your AI feedback here."
+                                : "Try adjusting your search or filters"}
+                        </p>
+
+                        {/* THE MINT ACTION BUTTON */}
+                        {solutions.length === 0 ? (
+                            <Link
+                                to="/dashboard"
+                                className="group flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-lg transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:-translate-y-0.5"
+                            >
+                                <span>Browse Problems</span>
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    setStatusFilter('all');
+                                }}
+                                className="group flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-lg transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:-translate-y-0.5"
+                            >
+                                Clear Filters
+                            </button>
+                        )}
+                    </div>
+                ) : (
+                    /* Solutions List */
+                    <div className="space-y-4">
+                        {filteredSolutions.map((solution, index) => {
+                            const question = solution.question as Question;
+                            if (!question) return null;
+
+                            return (
+                                <SpotlightCard
+                                    key={solution._id}
+                                    className="p-6 animate-fadeIn hover:-translate-y-0.5 transition-transform duration-300"
+                                    style={{ animationDelay: `${index * 50}ms` } as React.CSSProperties}
+                                >
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                                        <div>
+                                            <h3 className="text-xl font-bold text-white mb-2 tracking-tight">{question.title}</h3>
+                                            <div className="flex items-center gap-3 text-sm text-slate-400">
+                                                <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase border ${question.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                                                    question.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                                                        'bg-red-500/20 text-red-400 border-red-500/30'
+                                                    }`}>
+                                                    {question.difficulty}
+                                                </span>
+                                                <span className="text-slate-600">•</span>
+                                                <span>{question.category}</span>
+                                                <span className="text-slate-600">•</span>
+                                                <span className="flex items-center gap-1">
+                                                    <Clock size={14} />
+                                                    {formatDate(solution.submittedAt)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4">
+                                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${solution.status === 'evaluated' ? 'bg-emerald-500/10 border-emerald-500/30' :
+                                                solution.status === 'evaluating' ? 'bg-blue-500/10 border-blue-500/30' :
+                                                    solution.status === 'error' ? 'bg-red-500/10 border-red-500/30' :
+                                                        'bg-slate-800/50 border-white/10'
+                                                }`}>
+                                                {getStatusIcon(solution.status)}
+                                                <span className="text-sm font-medium text-white">{getStatusLabel(solution.status)}</span>
+                                            </div>
+
+                                            {solution.status === 'evaluated' && solution.evaluation && (
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-3xl font-bold ${getScoreColor(solution.evaluation.score)}`}>
+                                                        {solution.evaluation.score}
+                                                    </span>
+                                                    <span className="text-slate-500 text-sm">/ 100</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {solution.status === 'evaluated' && solution.evaluation && (
+                                        <div className="mb-4 p-4 bg-slate-800/30 rounded-lg border border-white/5">
+                                            <p className="text-sm text-slate-300 leading-relaxed">
+                                                {solution.evaluation.feedback?.substring(0, 200)}
+                                                {(solution.evaluation.feedback?.length || 0) > 200 ? '...' : ''}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+                                        <Link
+                                            to={`/solve/${typeof question === 'string' ? question : question._id}`}
+                                            className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 text-white rounded-lg transition-all border border-white/10 hover:border-emerald-500/50"
+                                        >
+                                            <RotateCcw size={16} />
+                                            Continue
+                                        </Link>
+                                        <button
+                                            onClick={() => handleDelete(solution._id)}
+                                            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-all border border-red-500/30 hover:border-red-500/50"
+                                        >
+                                            <Trash2 size={16} />
+                                            Delete
+                                        </button>
+                                    </div>
+                                </SpotlightCard>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+            <style>{`
+                @keyframes blur-in {
+                    0% {
+                        filter: blur(10px);
+                        opacity: 0;
+                    }
+                    100% {
+                        filter: blur(0);
+                        opacity: 1;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
